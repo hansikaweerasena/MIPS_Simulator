@@ -1,4 +1,7 @@
-
+STARTING_MEMORY_ADDRESS = 260
+memory = []
+decoded_memory = []
+registerFile = []
 
 def readFileLineByLine(filename):
     file1 = open(filename, 'r')
@@ -8,3 +11,7 @@ def readFileLineByLine(filename):
         itemList.append(line.strip())
     file1.close()
     return itemList
+
+
+memory = readFileLineByLine("sample.txt")
+print(memory)
