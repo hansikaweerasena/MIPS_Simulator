@@ -2,7 +2,7 @@ import sys
 
 STARTING_MEMORY_ADDRESS = 260
 disassembled_memory = []
-registerFile = [0]*32
+registerFile = [0] * 32
 data_memory_pointer = sys.maxsize
 program_counter = 0
 break_flag = False
@@ -19,15 +19,15 @@ def read_file_line_by_line(filename):
 
 
 def get_instruction_address(int_pointer):
-    return str(STARTING_MEMORY_ADDRESS + instruction_pointer * 4)
+    return str(STARTING_MEMORY_ADDRESS + int_pointer * 4)
 
 
 def get_instruction_str(instruction):
-    instruction_str = instruction[1] + " "
+    instruction_str = instruction[1]
     for component in instruction[2:-1]:
-        instruction_str += component + ", "
+        instruction_str += " " + component + ","
     if len(instruction) > 2:
-        instruction_str += instruction[-1]
+        instruction_str += " " + instruction[-1]
     return instruction_str
 
 
@@ -36,7 +36,7 @@ def write_disassembled_code_to_file(memory, decoded_memory):
     with open('disassembly.txt', 'a') as the_file:
         for index, word in enumerate(memory):
             the_file.write(word + "\t")
-            the_file.write(str(STARTING_MEMORY_ADDRESS + index*4) + "\t")
+            the_file.write(str(STARTING_MEMORY_ADDRESS + index * 4) + "\t")
             if index < data_memory_pointer:
                 the_file.write(get_instruction_str(decoded_memory[index]))
             else:
@@ -59,25 +59,30 @@ def disassemble_cat_one_i(word, idx):
     op_code = word[3:6]
     inst_data = word[6:]
     if op_code == '000':
-        inst_index = bin_to_int("{:032b}".format((idx + 1)*4 + STARTING_MEMORY_ADDRESS)[:4]) << 28 | bin_to_int(inst_data) << 2
-        return [1,'J', '#' + str(inst_index)]
+        inst_index = bin_to_int("{:032b}".format((idx + 1) * 4 + STARTING_MEMORY_ADDRESS)[:4]) << 28 | bin_to_int(
+            inst_data) << 2
+        return [1, 'J', '#' + str(inst_index)]
     elif op_code == '001':
         offset = bin_to_int(inst_data[10:]) << 2
-        return [1,'BEQ', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])), '#' + str(offset)]
+        return [1, 'BEQ', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])),
+                '#' + str(offset)]
     elif op_code == '010':
         offset = bin_to_int(inst_data[10:]) << 2
-        return [1,'BNE', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])), '#' + str(offset)]
+        return [1, 'BNE', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])),
+                '#' + str(offset)]
     elif op_code == '011':
         offset = bin_to_int(inst_data[10:]) << 2
-        return [1,'BGTZ', 'R' + str(bin_to_int(inst_data[:5])), '#' + str(offset)]
+        return [1, 'BGTZ', 'R' + str(bin_to_int(inst_data[:5])), '#' + str(offset)]
     elif op_code == '100':
-        return [1,'SW', 'R' + str(bin_to_int(inst_data[5:10])), str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
+        return [1, 'SW', 'R' + str(bin_to_int(inst_data[5:10])),
+                str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
     elif op_code == '101':
-        return [1,'LW', 'R' + str(bin_to_int(inst_data[5:10])), str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
+        return [1, 'LW', 'R' + str(bin_to_int(inst_data[5:10])),
+                str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
     elif op_code == '110':
-        global  data_memory_pointer
+        global data_memory_pointer
         data_memory_pointer = idx + 1
-        return [1,'BREAK']
+        return [1, 'BREAK']
     else:
         raise ValueError("Invalid Op Code for Category 1")
 
@@ -88,21 +93,22 @@ def disassemble_cat_two_i(word):
     src1 = 'R' + str(bin_to_int(word[11:16]))
     src2 = 'R' + str(bin_to_int(word[16:21]))
     if op_code == '000':
-        return [2,"ADD", dest, src1, src2]
+        return [2, "ADD", dest, src1, src2]
     elif op_code == '001':
-        return [2,"SUB", dest, src1, src2]
+        return [2, "SUB", dest, src1, src2]
     elif op_code == '010':
-        return [2,"AND", dest, src1, src2]
+        return [2, "AND", dest, src1, src2]
     elif op_code == '011':
-        return [2,"OR", dest, src1, src2]
+        return [2, "OR", dest, src1, src2]
     elif op_code == '100':
-        return [2,"SRL", dest, src1, src2]
+        return [2, "SRL", dest, src1, src2]
     elif op_code == '101':
-        return [2,"SRA", dest, src1, src2]
+        return [2, "SRA", dest, src1, src2]
     elif op_code == '110':
-        return [2,"MUL", dest, src1, src2]
+        return [2, "MUL", dest, src1, src2]
     else:
         raise ValueError("Invalid Op Code for Category 2")
+
 
 def disassemble_cat_three_i(word):
     # Check 2's oparend or not for every instruction
@@ -111,11 +117,11 @@ def disassemble_cat_three_i(word):
     src1 = 'R' + str(bin_to_int(word[11:16]))
     imd_val = '#' + str(bin_to_int(word[16:]))
     if op_code == '000':
-        return [3,'ADDI', dest, src1, imd_val]
+        return [3, 'ADDI', dest, src1, imd_val]
     elif op_code == '001':
-        return [3,'ANDI', dest, src1, imd_val]
+        return [3, 'ANDI', dest, src1, imd_val]
     elif op_code == '010':
-        return [3,'ORI', dest, src1, imd_val]
+        return [3, 'ORI', dest, src1, imd_val]
     else:
         raise ValueError("Invalid Op Code for Category 3")
 
@@ -156,25 +162,25 @@ def write_status_to_file(file, cycle):
         if index % 8 == 0:
             file.write("R" + "{:02d}".format(index) + ":\t")
         file.write(str(register))
-        if (index+1) % 8 == 0:
+        if (index + 1) % 8 == 0:
             file.write("\n")
         else:
             file.write("\t")
         index_r = index
-    if (index_r+1) % 8 != 0:
+    if (index_r + 1) % 8 != 0:
         file.write("\n")
     index_d = 0
     file.write("\nData\n")
     for index, data in enumerate(disassembled_memory[data_memory_pointer:]):
         if index % 8 == 0:
-            file.write(str(STARTING_MEMORY_ADDRESS + (data_memory_pointer + index)*4) + ":\t")
+            file.write(str(STARTING_MEMORY_ADDRESS + (data_memory_pointer + index) * 4) + ":\t")
         file.write(str(data))
-        if (index+1) % 8 == 0:
+        if (index + 1) % 8 == 0:
             file.write("\n")
         else:
             file.write("\t")
         index_d = index
-    if (index_d+1) % 8 != 0:
+    if (index_d + 1) % 8 != 0:
         file.write("\n")
     if not break_flag:
         file.write("\n")
@@ -183,35 +189,37 @@ def write_status_to_file(file, cycle):
 def run_cat_1_i(instruction):
     global program_counter, instruction_pointer, break_flag
     if instruction[0] == 'J':
-        target = (int(instruction[1][1:]) - STARTING_MEMORY_ADDRESS)//4
+        target = (int(instruction[1][1:]) - STARTING_MEMORY_ADDRESS) // 4
         program_counter = target
     elif instruction[0] == 'BEQ':
         rs = registerFile[int(instruction[1][1:])]
         rt = registerFile[int(instruction[2][1:])]
         offset = int(instruction[3][1:])
-        if rt == rs :
-            program_counter = instruction_pointer + offset//4
+        if rt == rs:
+            program_counter = program_counter + offset // 4
     elif instruction[0] == 'BNE':
         rs = registerFile[int(instruction[1][1:])]
         rt = registerFile[int(instruction[2][1:])]
         offset = int(instruction[3][1:])
         if rt != rs:
-            program_counter = instruction_pointer + offset // 4
+            program_counter = program_counter + offset // 4
     elif instruction[0] == 'BGTZ':
         rs = registerFile[int(instruction[1][1:])]
         offset = int(instruction[2][1:])
         if rs > 0:
-            program_counter = instruction_pointer + offset // 4
+            program_counter = program_counter + offset // 4
     elif instruction[0] == 'SW':
-        base = registerFile[int(instruction[1][1:])]
-        rt = registerFile[int(instruction[2][1:])]
-        offset = int(instruction[3][1:]),
-        disassembled_memory[(base + offset) // 4] = rt
+        rt = registerFile[int(instruction[1][1:])]
+        temp = instruction[2].split('(')
+        offset = int(temp[0])
+        base = registerFile[int(temp[1].replace(")", "")[1:])]
+        disassembled_memory[(base + offset - STARTING_MEMORY_ADDRESS) // 4] = rt
     elif instruction[0] == 'LW':
-        base = registerFile[int(instruction[1][1:])]
-        rt = int(instruction[2][1:])
-        offset = int(instruction[3][1:]),
-        registerFile[rt] = int(disassembled_memory[(base + offset) // 4])
+        rt = int(instruction[1][1:])
+        temp = instruction[2].split('(')
+        offset = int(temp[0])
+        base = registerFile[int(temp[1].replace(")", "")[1:])]
+        registerFile[rt] = int(disassembled_memory[(base + offset - STARTING_MEMORY_ADDRESS) // 4])
     elif instruction[0] == 'BREAK':
         break_flag = True
     else:
@@ -284,4 +292,3 @@ while not break_flag:
     simulate_instruction()
     write_status_to_file(filez, cycle)
     cycle += 1
-
