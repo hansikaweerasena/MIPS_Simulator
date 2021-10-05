@@ -1,7 +1,6 @@
 import sys
 
 STARTING_MEMORY_ADDRESS = 260
-memory = []
 disassembled_memory = []
 registerFile = []
 data_memory_pointer = sys.maxsize
@@ -17,11 +16,21 @@ def read_file_line_by_line(filename):
     return itemList
 
 
-def write_deassembled_code_to_file(memory, decoded_memory):
-    open('dout.txt', 'w').close()
-    with open('dout.txt', 'a') as the_file:
-        for word in memory:
-            the_file.write(memory + "\n")
+def write_disassembled_code_to_file(memory, decoded_memory):
+    open('disassembly.txt', 'w').close()
+    with open('disassembly.txt', 'a') as the_file:
+        for index, word in enumerate(memory):
+            the_file.write(word + "\t")
+            the_file.write(str(STARTING_MEMORY_ADDRESS + index*4) + "\t")
+            if index < data_memory_pointer:
+                the_file.write(decoded_memory[index][0] + " ")
+                for component in decoded_memory[index][1:-1]:
+                    the_file.write(component + ", ")
+                if len(decoded_memory[index]) > 1:
+                    the_file.write(decoded_memory[index][-1])
+            else:
+                the_file.write(str(decoded_memory[index]))
+            the_file.write("\n")
 
 
 def bin_to_int(binary_str):
@@ -126,3 +135,4 @@ def disassemble_memory(memory, dissembled_memory):
 
 memory = read_file_line_by_line("sample.txt")
 disassemble_memory(memory, disassembled_memory)
+write_disassembled_code_to_file(memory, disassembled_memory)
