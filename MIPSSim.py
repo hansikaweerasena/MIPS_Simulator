@@ -2,8 +2,10 @@ import sys
 
 STARTING_MEMORY_ADDRESS = 260
 disassembled_memory = []
-registerFile = []
+registerFile = [0]*32
 data_memory_pointer = sys.maxsize
+instruction_pointer = 0
+program_counter = 0
 
 
 def read_file_line_by_line(filename):
@@ -16,6 +18,19 @@ def read_file_line_by_line(filename):
     return itemList
 
 
+def get_instruction_address(int_pointer):
+    return str(STARTING_MEMORY_ADDRESS + instruction_pointer * 4)
+
+
+def get_instruction_str(instruction):
+    instruction_str = instruction[0] + " "
+    for component in instruction[1:-1]:
+        instruction_str += component + ", "
+    if len(instruction) > 1:
+        instruction_str += instruction[-1]
+    return instruction_str
+
+
 def write_disassembled_code_to_file(memory, decoded_memory):
     open('disassembly.txt', 'w').close()
     with open('disassembly.txt', 'a') as the_file:
@@ -23,11 +38,7 @@ def write_disassembled_code_to_file(memory, decoded_memory):
             the_file.write(word + "\t")
             the_file.write(str(STARTING_MEMORY_ADDRESS + index*4) + "\t")
             if index < data_memory_pointer:
-                the_file.write(decoded_memory[index][0] + " ")
-                for component in decoded_memory[index][1:-1]:
-                    the_file.write(component + ", ")
-                if len(decoded_memory[index]) > 1:
-                    the_file.write(decoded_memory[index][-1])
+                the_file.write(get_instruction_str(decoded_memory[index]))
             else:
                 the_file.write(str(decoded_memory[index]))
             the_file.write("\n")
@@ -94,6 +105,7 @@ def disassemble_cat_two_i(word):
         raise ValueError("Invalid Op Code for Category 2")
 
 def disassemble_cat_three_i(word):
+    # Check 2's oparend or not for every instruction
     op_code = word[3:6]
     dest = 'R' + str(bin_to_int(word[6:11]))
     src1 = 'R' + str(bin_to_int(word[11:16]))
@@ -133,6 +145,47 @@ def disassemble_memory(memory, dissembled_memory):
         dissembled_memory.append(dissemble_word(word, index))
 
 
+def write_status_to_file(file, cycle):
+    file.write("--------------------" + "\n")
+    file.write("Cycle " + str(cycle) + ":\t" + get_instruction_address(instruction_pointer) + "\t")
+    file.write(get_instruction_str(disassembled_memory[instruction_pointer]))
+    file.write("\n\n")
+    file.write("Registers\n")
+    index_r = 0
+    for index, register in enumerate(registerFile):
+        if index % 8 == 0:
+            file.write("R" + "{:02d}".format(index) + ":\t")
+        file.write(str(register))
+        if (index+1) % 8 == 0:
+            file.write("\n")
+        else:
+            file.write("\t")
+        index_r = index
+    if (index_r+1) % 8 != 0:
+        file.write("\n")
+    index_d = 0
+    file.write("\nData\n")
+    for index, data in enumerate(disassembled_memory[data_memory_pointer:]):
+        if index % 8 == 0:
+            file.write(str(STARTING_MEMORY_ADDRESS + (data_memory_pointer + index)*4) + ":\t")
+        file.write(str(data))
+        if (index+1) % 8 == 0:
+            file.write("\n")
+        else:
+            file.write("\t")
+        index_d = index
+    if (index_d+1) % 8 != 0:
+        file.write("\n")
+
+
+def simulate_instruction(instruction_pointer):
+    pass
+
+
+
 memory = read_file_line_by_line("sample.txt")
 disassemble_memory(memory, disassembled_memory)
 write_disassembled_code_to_file(memory, disassembled_memory)
+
+filez = open("simulation.txt", 'w')
+write_status_to_file(filez,1)
