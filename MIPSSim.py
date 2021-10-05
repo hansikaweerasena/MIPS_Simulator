@@ -48,11 +48,18 @@ def bin_to_int(binary_str):
     return int(binary_str, 2)
 
 
-def twos_complement_int(binary_str):
+def twos_complement_bin_to_int(binary_str):
     if binary_str[0] == '0':
         return bin_to_int(binary_str)
     else:
         return int(binary_str[1:], 2) - (int(binary_str[0], 2) << (len(binary_str) - 1))
+
+
+def twos_complement_to_regular(val):
+    if val < 0:
+        return int(format((1 << 32) + val, '032b'), 2)
+    else:
+        return val
 
 
 def disassemble_cat_one_i(word, idx):
@@ -63,22 +70,22 @@ def disassemble_cat_one_i(word, idx):
             inst_data) << 2
         return [1, 'J', '#' + str(inst_index)]
     elif op_code == '001':
-        offset = bin_to_int(inst_data[10:]) << 2
+        offset = twos_complement_bin_to_int(inst_data[10:]) << 2
         return [1, 'BEQ', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])),
                 '#' + str(offset)]
     elif op_code == '010':
-        offset = bin_to_int(inst_data[10:]) << 2
+        offset = twos_complement_bin_to_int(inst_data[10:]) << 2
         return [1, 'BNE', 'R' + str(bin_to_int(inst_data[:5])), 'R' + str(bin_to_int(inst_data[5:10])),
                 '#' + str(offset)]
     elif op_code == '011':
-        offset = bin_to_int(inst_data[10:]) << 2
+        offset = twos_complement_bin_to_int(inst_data[10:]) << 2
         return [1, 'BGTZ', 'R' + str(bin_to_int(inst_data[:5])), '#' + str(offset)]
     elif op_code == '100':
         return [1, 'SW', 'R' + str(bin_to_int(inst_data[5:10])),
-                str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
+                str(twos_complement_bin_to_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
     elif op_code == '101':
         return [1, 'LW', 'R' + str(bin_to_int(inst_data[5:10])),
-                str(twos_complement_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
+                str(twos_complement_bin_to_int(inst_data[10:])) + "(R" + str(bin_to_int(inst_data[:5])) + ")"]
     elif op_code == '110':
         global data_memory_pointer
         data_memory_pointer = idx + 1
@@ -111,17 +118,15 @@ def disassemble_cat_two_i(word):
 
 
 def disassemble_cat_three_i(word):
-    # Check 2's oparend or not for every instruction
     op_code = word[3:6]
     dest = 'R' + str(bin_to_int(word[6:11]))
     src1 = 'R' + str(bin_to_int(word[11:16]))
-    imd_val = '#' + str(bin_to_int(word[16:]))
     if op_code == '000':
-        return [3, 'ADDI', dest, src1, imd_val]
+        return [3, 'ADDI', dest, src1, '#' + str(twos_complement_bin_to_int(word[16:]))]
     elif op_code == '001':
-        return [3, 'ANDI', dest, src1, imd_val]
+        return [3, 'ANDI', dest, src1, '#' + str(bin_to_int(word[16:]))]
     elif op_code == '010':
-        return [3, 'ORI', dest, src1, imd_val]
+        return [3, 'ORI', dest, src1, '#' + str(bin_to_int(word[16:]))]
     else:
         raise ValueError("Invalid Op Code for Category 3")
 
@@ -136,7 +141,7 @@ def disassemble_instruction(word, idx):
 
 
 def disassemble_data(word):
-    return twos_complement_int(word)
+    return twos_complement_bin_to_int(word)
 
 
 def dissemble_word(word, idx):
@@ -236,9 +241,9 @@ def run_cat_2_i(instruction):
     elif instruction[0] == 'SUB':
         registerFile[rd] = rs - rt
     elif instruction[0] == 'AND':
-        registerFile[rd] = rs & rt
+        registerFile[rd] = twos_complement_to_regular(rs) & twos_complement_to_regular(rt)
     elif instruction[0] == 'OR':
-        registerFile[rd] = rs | rt
+        registerFile[rd] = twos_complement_to_regular(rs) | twos_complement_to_regular(rt)
     elif instruction[0] == 'SRL':
         sa = rt
         rt = rs
@@ -261,9 +266,9 @@ def run_cat_3_i(instruction):
     if instruction[0] == 'ADDI':
         registerFile[rt] = rs + immediate
     elif instruction[0] == 'ANDI':
-        registerFile[rt] = rs & immediate
+        registerFile[rt] = twos_complement_to_regular(rs) & immediate
     elif instruction[0] == 'ORI':
-        registerFile[rt] = rs | immediate
+        registerFile[rt] = twos_complement_to_regular(rs) | immediate
     else:
         raise ValueError("Invalid Operation for Category 3")
 
