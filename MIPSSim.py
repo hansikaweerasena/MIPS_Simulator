@@ -245,11 +245,11 @@ def run_cat_2_i(instruction):
     elif instruction[0] == 'OR':
         registerFile[rd] = twos_complement_to_regular(rs) | twos_complement_to_regular(rt)
     elif instruction[0] == 'SRL':
-        sa = rt
+        sa = twos_complement_to_regular(rt)
         rt = rs
         registerFile[rd] = rt >> sa
     elif instruction[0] == 'SRA':
-        sa = rt
+        sa = twos_complement_to_regular(rt)
         rt = rs
         registerFile[rd] = rt >> sa
     elif instruction[0] == 'MUL':
@@ -285,7 +285,7 @@ def simulate_instruction():
         run_cat_3_i(ins[1:])
 
 
-memory = read_file_line_by_line("sample.txt")
+memory = read_file_line_by_line("sample_h.txt")
 disassemble_memory(memory, disassembled_memory)
 write_disassembled_code_to_file(memory, disassembled_memory)
 
