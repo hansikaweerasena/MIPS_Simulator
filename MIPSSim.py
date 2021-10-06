@@ -58,6 +58,13 @@ def twos_complement_bin_to_int(binary_str):
         return int(binary_str[1:], 2) - (int(binary_str[0], 2) << (len(binary_str) - 1))
 
 
+def check_to_overflow_and_correct(val):
+    if val >= 2147483648:
+        return twos_complement_bin_to_int('{:032b}'.format(val))
+    else:
+        return val
+
+
 def twos_complement_to_regular(val):
     if val < 0:
         return int(format((1 << 32) + val, '032b'), 2)
@@ -244,9 +251,11 @@ def run_cat_2_i(instruction):
     elif instruction[0] == 'SUB':
         registerFile[rd] = rs - rt
     elif instruction[0] == 'AND':
-        registerFile[rd] = twos_complement_to_regular(rs) & twos_complement_to_regular(rt)
+        temp = twos_complement_to_regular(rs) & twos_complement_to_regular(rt)
+        registerFile[rd] = check_to_overflow_and_correct(temp)
     elif instruction[0] == 'OR':
-        registerFile[rd] = twos_complement_to_regular(rs) | twos_complement_to_regular(rt)
+        temp = twos_complement_to_regular(rs) | twos_complement_to_regular(rt)
+        registerFile[rd] = check_to_overflow_and_correct(temp)
     elif instruction[0] == 'SRL':
         sa = twos_complement_to_regular(rt)
         rt = rs
@@ -269,9 +278,11 @@ def run_cat_3_i(instruction):
     if instruction[0] == 'ADDI':
         registerFile[rt] = rs + immediate
     elif instruction[0] == 'ANDI':
-        registerFile[rt] = twos_complement_to_regular(rs) & immediate
+        temp = twos_complement_to_regular(rs) & immediate
+        registerFile[rt] = check_to_overflow_and_correct(temp)
     elif instruction[0] == 'ORI':
-        registerFile[rt] = twos_complement_to_regular(rs) | immediate
+        temp = twos_complement_to_regular(rs) | immediate
+        registerFile[rt] = check_to_overflow_and_correct(temp)
     else:
         raise ValueError("Invalid Operation for Category 3")
 
