@@ -323,3 +323,5 @@ while not break_flag:
     simulate_instruction()
     write_status_to_file(filez, cycle)
     cycle += 1
+
+filez.close()
