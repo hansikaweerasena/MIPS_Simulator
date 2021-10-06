@@ -285,7 +285,12 @@ def simulate_instruction():
         run_cat_3_i(ins[1:])
 
 
-memory = read_file_line_by_line("sample_h.txt")
+if len(sys.argv) > 1:
+    file_name = sys.argv[1]
+else:
+    file_name = "sample.txt"
+
+memory = read_file_line_by_line(file_name)
 disassemble_memory(memory, disassembled_memory)
 write_disassembled_code_to_file(memory, disassembled_memory)
 
