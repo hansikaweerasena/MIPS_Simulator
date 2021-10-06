@@ -1,4 +1,3 @@
-# On my honor, I have neither given nor received unauthorized aid on this assignment
 # Hansika Weerasena
 # Command to run on terminal: python3 MIPSsim.py inputfilename.txt
 
@@ -14,12 +13,12 @@ break_flag = False
 
 def read_file_line_by_line(filename):
     file1 = open(filename, 'r')
-    Lines = file1.readlines()
-    itemList = []
-    for line in Lines:
-        itemList.append(line.strip())
+    lines = file1.readlines()
+    item_list = []
+    for line in lines:
+        item_list.append(line.strip())
     file1.close()
-    return itemList
+    return item_list
 
 
 def get_instruction_address(int_pointer):
