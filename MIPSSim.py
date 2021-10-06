@@ -108,20 +108,26 @@ def disassemble_cat_two_i(word):
     op_code = word[3:6]
     dest = 'R' + str(bin_to_int(word[6:11]))
     src1 = 'R' + str(bin_to_int(word[11:16]))
-    src2 = 'R' + str(bin_to_int(word[16:21]))
     if op_code == '000':
+        src2 = 'R' + str(bin_to_int(word[16:21]))
         return [2, "ADD", dest, src1, src2]
     elif op_code == '001':
+        src2 = 'R' + str(bin_to_int(word[16:21]))
         return [2, "SUB", dest, src1, src2]
     elif op_code == '010':
+        src2 = 'R' + str(bin_to_int(word[16:21]))
         return [2, "AND", dest, src1, src2]
     elif op_code == '011':
+        src2 = 'R' + str(bin_to_int(word[16:21]))
         return [2, "OR", dest, src1, src2]
     elif op_code == '100':
+        src2 = '#' + str(bin_to_int(word[16:21]))
         return [2, "SRL", dest, src1, src2]
     elif op_code == '101':
+        src2 = '#' + str(bin_to_int(word[16:21]))
         return [2, "SRA", dest, src1, src2]
     elif op_code == '110':
+        src2 = 'R' + str(bin_to_int(word[16:21]))
         return [2, "MUL", dest, src1, src2]
     else:
         raise ValueError("Invalid Op Code for Category 2")
@@ -257,11 +263,11 @@ def run_cat_2_i(instruction):
         temp = twos_complement_to_regular(rs) | twos_complement_to_regular(rt)
         registerFile[rd] = check_to_overflow_and_correct(temp)
     elif instruction[0] == 'SRL':
-        sa = twos_complement_to_regular(rt)
+        sa = int(instruction[3][1:])
         rt = rs
         registerFile[rd] = rt >> sa
     elif instruction[0] == 'SRA':
-        sa = twos_complement_to_regular(rt)
+        sa = int(instruction[3][1:])
         rt = rs
         registerFile[rd] = rt >> sa
     elif instruction[0] == 'MUL':
