@@ -1,5 +1,6 @@
 # On my honor, I have neither given nor received unauthorized aid on this assignment
 # Hansika Weerasena
+# Command to run on terminal: python3 MIPSsim.py inputfilename.txt
 
 import sys
 
