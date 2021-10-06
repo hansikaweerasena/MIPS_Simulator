@@ -1,3 +1,6 @@
+# On my honor, I have neither given nor received unauthorized aid on this assignment
+# Hansika Weerasena
+
 import sys
 
 STARTING_MEMORY_ADDRESS = 260
