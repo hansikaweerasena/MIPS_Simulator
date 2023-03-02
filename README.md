@@ -11,6 +11,8 @@ sample test files can be found in the \sample directory.
 2. The address (in decimal) of that location
 3. The disassembled instruction.
 
+A pipelined version of this simulator can be found in [MIPSSim](https://github.com/hansikaweerasena/MIPSSim).
+
 ### How to Run
 
 `python3 MIPSSim.py sample.txt`
